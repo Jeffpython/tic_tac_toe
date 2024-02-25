@@ -1,10 +1,20 @@
 import random
 
 
-def display_info(field: list, is_field_filled: bool, is_win: bool, move_by='comp') -> None:
-    # отображать в консоли информацию о состоянии игры
+def display_info(field: list[list[str | None]], is_field_filled: bool, is_win: bool, move_by='comp') -> None:
+    ''' отображать в консоли информацию о состоянии игры '''
 
-    # отобразить игровое поле
+    display_field(field)
+
+    if is_field_filled:
+        print('Победила - дружба!')
+    elif is_win:
+        print('Вы проиграли') if move_by == 'comp' else print('Вы выиграли!')
+
+
+def display_field(field: list[list[str | None]]) -> None:
+    ''' отобразить игровое поле '''
+
     for row in field:
         print('-' * 13)
 
@@ -17,14 +27,9 @@ def display_info(field: list, is_field_filled: bool, is_win: bool, move_by='comp
         print('|')
     print('-' * 13)
 
-    if is_field_filled:
-        print('Победила - дружба')
-    elif is_win:
-        print('Вы проиграли') if move_by == 'comp' else print('Вы выиграли!')
 
-
-def make_move(field: list, is_user_play_by_crosses: bool, move_by='comp') -> None:
-    # выполнить ход
+def make_move(field: list[list[str | None]], is_user_play_by_crosses: bool, move_by='comp') -> None:
+    ''' выполнить ход '''
 
     while True:
 
@@ -48,8 +53,8 @@ def make_move(field: list, is_user_play_by_crosses: bool, move_by='comp') -> Non
                 break
 
 
-def check_move(field: list, row: int, column: int) -> bool:
-    # проверка корректности хода
+def check_move(field: list[list[str | None]], row: int, column: int) -> bool:
+    ''' проверка корректности хода '''
 
     # вне игрового поля
     if row > 2 or column > 2:
@@ -62,51 +67,84 @@ def check_move(field: list, row: int, column: int) -> bool:
     return True
 
 
-def check_field_fill(field: list) -> bool:
-    # заполненность игрового поля
+def check_field_fill(field: list[list[str | None]]) -> bool:
+    ''' заполненность игрового поля '''
     for row in field:
         for cell in row:
-            if cell != 'X' and cell != '0':
+            if cell is None:
                 return False
 
     return True
 
 
-def check_win(field: list) -> bool:
-    # проверка выигрыша
-
+def check_rows_same_values(field: list[list[str | None]]) -> bool:
+    ''' проверка заполнения строк одинаковыми значениями '''
     if (field[0][0] and field[0][0] == field[0][1] == field[0][2]
             or field[1][0] and field[1][0] == field[1][1] == field[1][2]
-            or field[2][0] and field[2][0] == field[2][1] == field[2][2]
-            or field[0][0] and field[0][0] == field[1][0] == field[2][0]
+            or field[2][0] and field[2][0] == field[2][1] == field[2][2]):
+        return True
+    else:
+        return False
+
+
+def check_columns_same_values(field: list[list[str | None]]) -> bool:
+    ''' проверка заполнения столбцов одинаковыми значениями '''
+    if (field[0][0] and field[0][0] == field[1][0] == field[2][0]
             or field[0][1] and field[0][1] == field[1][1] == field[2][1]
-            or field[0][2] and field[0][2] == field[1][2] == field[2][2]
-            or field[0][0] and field[0][0] == field[1][1] == field[2][2]
-            or field[0][2] and field[0][2] == field[1][1] == field[2][0]
-    ):
+            or field[0][2] and field[0][2] == field[1][2] == field[2][2]):
+        return True
+    else:
+        return False
+
+
+def check_diagonals_same_values(field: list[list[str | None]]) -> bool:
+    ''' проверка заполнения диагоналей одинаковыми значениями '''
+    if (field[0][0] and field[0][0] == field[1][1] == field[2][2]
+            or field[0][2] and field[0][2] == field[1][1] == field[2][0]):
+        return True
+    else:
+        return False
+
+
+def check_win(field: list[list[str | None]]) -> bool:
+    ''' проверка выигрыша '''
+    if (check_rows_same_values(field)
+            or check_columns_same_values(field)
+            or check_diagonals_same_values(field)):
         return True
 
     return False
 
 
-field = [[None] * 3 for i in range(3)]
-is_field_filled = False  # поле заполнено
-is_win = False  # выявлен победитель
-is_user_play_by_crosses = random.choice([True, False])  # пользователь играет крестиками
+def generate_blank_field() -> list[list[str | None]]:
+    ''' генерация пустого игрового поля '''
+    return [[None] * 3 for i in range(3)]
 
-if is_user_play_by_crosses:
-    make_move(field, is_user_play_by_crosses, 'user')
-    display_info(field, is_field_filled, is_win, 'user')
 
-while not is_field_filled and not is_win:
+def main():
 
-    make_move(field, is_user_play_by_crosses)
-    is_field_filled = check_field_fill(field)
-    is_win = check_win(field)
-    display_info(field, is_field_filled, is_win)
+    field = generate_blank_field()
+    is_field_filled = False  # поле заполнено
+    is_win = False  # выявлен победитель
+    is_user_play_by_crosses = random.choice([True, False])  # пользователь играет крестиками
 
-    if not is_field_filled and not is_win:
+    if is_user_play_by_crosses:
         make_move(field, is_user_play_by_crosses, 'user')
+        display_info(field, is_field_filled, is_win, 'user')
+
+    while not is_field_filled and not is_win:
+
+        make_move(field, is_user_play_by_crosses)
         is_field_filled = check_field_fill(field)
         is_win = check_win(field)
-        display_info(field, is_field_filled, is_win, 'user')
+        display_info(field, is_field_filled, is_win)
+
+        if not is_field_filled and not is_win:
+            make_move(field, is_user_play_by_crosses, 'user')
+            is_field_filled = check_field_fill(field)
+            is_win = check_win(field)
+            display_info(field, is_field_filled, is_win, 'user')
+
+
+if __name__ == '__main__':
+    main()
